@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MotoTrack — Bitácora y Calendario AKT TTR 200</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        graphite: {
+                            900: '#0f1419',
+                            800: '#182028',
+                            700: '#222d38',
+                            600: '#2d3b4a',
+                            500: '#415265'
+                        },
+                        ttr: {
+                            lime: '#c8e620',
+                            blue: '#38bdf8',
+                            dark: '#0f1419',
+                            card: '#182028'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Courier New', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome para Iconografía -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0f1419;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glow-lime {
+            box-shadow: 0 0 15px rgba(200, 230, 32, 0.25);
+        }
+        .glow-blue {
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+        }
+        .bg-grid {
+            background-image: radial-gradient(rgba(200, 230, 32, 0.07) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f1419;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2d3b4a;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c8e620;
+        }
+    </style>
+</head>
+<body class="bg-graphite-900 min-h-screen pb-20 md:pb-8 bg-grid flex flex-col justify-between">
+
+    <!-- HEADER / BARRA SUPERIOR DE TELEMETRÍA -->
+    <header class="sticky top-0 z-40 bg-graphite-900/95 backdrop-blur border-b border-graphite-700 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                
+                <!-- Identificador de la Moto -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-ttr-lime/10 border border-ttr-lime flex items-center justify-center text-ttr-lime font-extrabold text-xl shadow-inner">
+                            <i class="fa-solid font-mono fa-motorcycle"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h1 class="font-black tracking-tight text-white text-lg leading-none">MOTOTRACK</h1>
+                                <span class="bg-ttr-lime text-black font-extrabold text-[10px] px-2 py-0.5 rounded tracking-wider uppercase">AKT TTR 200</span>
+                            </div>
+                            <p class="text-xs text-gray-400 font-mono mt-1 flex items-center gap-2">
+                                <span id="headerPlate" class="bg-graphite-700 px-1.5 py-0.2 rounded text-ttr-lime font-bold">PLACA: ---</span>
+                                <span id="headerCondition" class="text-gray-300">Modo: Nueva</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Botón Configuración de Moto -->
+                    <button onclick="openBikeConfigModal()" class="md:hidden bg-graphite-800 border border-graphite-700 hover:border-ttr-lime text-gray-300 hover:text-white p-2.5 rounded-xl transition">
+                        <i class="fa-solid fa-sliders"></i>
+                    </button>
+                </div>
+
+                <!-- Bloque Central Telemetría Odómetro -->
+                <div class="flex items-center justify-between md:justify-end gap-3 bg-graphite-800 border border-graphite-700 p-2.5 rounded-2xl">
+                    <div class="flex items-center space-x-3 px-2">
+                        <i class="fa-solid fa-gauge-high text-ttr-lime text-2xl animate-pulse"></i>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Odómetro Actual</div>
+                            <div class="flex items-baseline space-x-1">
+                                <span id="currentOdoDisplay" class="font-mono text-2xl font-black text-white tracking-tight">0</span>
+                                <span class="text-xs font-bold text-ttr-lime">KM</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-l border-graphite-700 pl-3 pr-2 hidden sm:block">
+                        <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Uso Promedio</div>
+                        <div class="flex items-baseline space-x-1">
+                            <span id="avgKmDayDisplay" class="font-mono text-lg font-bold text-ttr-blue">0.0</span>
+                            <span class="text-[10px] text-gray-400">km/día</span>
+                        </div>
+                    </div>
+
+                    <button onclick="openOdometerModal()" class="bg-ttr-lime hover:bg-lime-400 text-black font-extrabold text-xs px-3.5 py-2.5 rounded-xl flex items-center space-x-2 transition shadow-md">
+                        <i class="fa-solid fa-plus-circle"></i>
+                        <span class="hidden sm:inline">Registrar</span> KM
+                    </button>
+
+                    <button onclick="openBikeConfigModal()" class="hidden md:flex bg-graphite-700 hover:bg-graphite-600 text-white p-2.5 rounded-xl transition items-center justify-center">
+                        <i class="fa-solid fa-sliders"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+
+        <!-- ALERTA DE DESPEGUE & TARJETA DE GARANTÍA AKT (SOLO MODO NUEVA O < 1,000 KM) -->
+        <section id="breakinWarrantySection" class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <!-- Tarjeta Despegue -->
+            <div id="breakinCard" class="md:col-span-1 bg-gradient-to-br from-graphite-800 to-graphite-800/80 border border-amber-500/30 p-4 rounded-2xl relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 opacity-10 text-amber-500 text-8xl">
+                    <i class="fa-solid fa-tachograph-digital"></i>
+                </div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Periodo de Despegue (0 - 1,000 KM)
+                    </span>
+                    <span id="breakinKmBadge" class="text-xs font-mono bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded">0 / 1000 km</span>
+                </div>
+                <p id="breakinAdviceText" class="text-xs text-gray-300 leading-relaxed">
+                    <strong>Manual AKT:</strong> No supere 50 km/h en los primeros 750 km. Varíe revoluciones y realice la 1ra revisión obligatoria entre 500 y 1,000 km.
+                </p>
+                <div class="w-full bg-graphite-900 h-2 rounded-full mt-3 overflow-hidden border border-graphite-700">
+                    <div id="breakinProgressBar" class="bg-gradient-to-r from-amber-500 to-ttr-lime h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Tarjeta Garantía Oficial AKT -->
+            <div class="md:col-span-2 bg-graphite-800 border border-graphite-700 p-4 rounded-2xl flex flex-col justify-between">
+                <div>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-ttr-blue text-lg"></i>
+                            <h3 class="font-bold text-white text-sm">Garantía Oficial AKT Motores</h3>
+                            <span class="text-[10px] bg-ttr-blue/20 text-ttr-blue font-mono font-bold px-2 py-0.5 rounded">24 Meses ó 24,000 KM</span>
+                        </div>
+                        <span id="warrantyStatusText" class="text-xs font-mono text-emerald-400 font-bold">VIGENTE</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 my-2">
+                        <div>
+                            <div class="flex justify-between text-[11px] text-gray-400 mb-1">
+                                <span>Límite Tiempo: 08/09/2028</span>
+                                <span id="warrantyDaysPercent">0%</span>
+                            </div>
+                            <div class="w-full bg-graphite-900 h-2 rounded-full overflow-hidden border border-graphite-700">
+                                <div id="warrantyDaysBar" class="bg-ttr-blue h-full rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[11px] text-gray-400 mb-1">
+                                <span>Límite Kilometraje: 24,000 km</span>
+                                <span id="warrantyKmPercent">0%</span>
+                            </div>
+                            <div class="w-full bg-graphite-900 h-2 rounded-full overflow-hidden border border-graphite-700">
+                                <div id="warrantyKmBar" class="bg-ttr-lime h-full rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revisiones Gratuitas AKT -->
+                <div class="mt-3 pt-3 border-t border-graphite-700/60">
+                    <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+                        <span>Checklist de 5 Revisiones Gratuitas AKT</span>
+                        <span class="text-[10px] text-gray-500 font-normal">Marca según completes en concesionario</span>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                        <button onclick="toggleWarrantyRevision(0)" id="revBtn0" class="p-1.5 rounded-lg border text-center transition text-xs font-mono font-semibold flex flex-col items-center">
+                            <span>1ª (500-1k)</span>
+                            <i id="revIcon0" class="fa-regular fa-square mt-1"></i>
+                        </button>
+                        <button onclick="toggleWarrantyRevision(1)" id="revBtn1" class="p-1.5 rounded-lg border text-center transition text-xs font-mono font-semibold flex flex-col items-center">
+                            <span>2ª (3k-3.5k)</span>
+                            <i id="revIcon1" class="fa-regular fa-square mt-1"></i>
+                        </button>
+                        <button onclick="toggleWarrantyRevision(2)" id="revBtn2" class="p-1.5 rounded-lg border text-center transition text-xs font-mono font-semibold flex flex-col items-center">
+                            <span>3ª (6k-6.5k)</span>
+                            <i id="revIcon2" class="fa-regular fa-square mt-1"></i>
+                        </button>
+                        <button onclick="toggleWarrantyRevision(3)" id="revBtn3" class="p-1.5 rounded-lg border text-center transition text-xs font-mono font-semibold flex flex-col items-center">
+                            <span>4ª (9k-9.5k)</span>
+                            <i id="revIcon3" class="fa-regular fa-square mt-1"></i>
+                        </button>
+                        <button onclick="toggleWarrantyRevision(4)" id="revBtn4" class="p-1.5 rounded-lg border text-center transition text-xs font-mono font-semibold flex flex-col items-center">
+                            <span>5ª (12k-12.5k)</span>
+                            <i id="revIcon4" class="fa-regular fa-square mt-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TARJETAS DE MÉTRICAS / RESUMEN RÁPIDO FILTRABLE -->
+        <section class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <button onclick="setFilterStatus('vencidos')" class="bg-graphite-800 hover:bg-graphite-700 border-l-4 border-red-500 p-3.5 rounded-xl text-left transition shadow">
+                <div class="text-xs font-bold uppercase text-gray-400">Vencidos</div>
+                <div class="flex items-baseline justify-between mt-1">
+                    <span id="countVencidos" class="text-2xl font-black text-red-500 font-mono">0</span>
+                    <i class="fa-solid fa-circle-exclamation text-red-500/40 text-lg"></i>
+                </div>
+            </button>
+
+            <button onclick="setFilterStatus('proximos')" class="bg-graphite-800 hover:bg-graphite-700 border-l-4 border-amber-500 p-3.5 rounded-xl text-left transition shadow">
+                <div class="text-xs font-bold uppercase text-gray-400">Próximos (1000 km)</div>
+                <div class="flex items-baseline justify-between mt-1">
+                    <span id="countProximos" class="text-2xl font-black text-amber-500 font-mono">0</span>
+                    <i class="fa-solid fa-clock text-amber-500/40 text-lg"></i>
+                </div>
+            </button>
+
+            <button onclick="setFilterStatus('aldia')" class="bg-graphite-800 hover:bg-graphite-700 border-l-4 border-emerald-500 p-3.5 rounded-xl text-left transition shadow">
+                <div class="text-xs font-bold uppercase text-gray-400">Al Día</div>
+                <div class="flex items-baseline justify-between mt-1">
+                    <span id="countAlDia" class="text-2xl font-black text-emerald-500 font-mono">0</span>
+                    <i class="fa-solid fa-circle-check text-emerald-500/40 text-lg"></i>
+                </div>
+            </button>
+
+            <button onclick="setFilterStatus('sinregistro')" class="bg-graphite-800 hover:bg-graphite-700 border-l-4 border-ttr-blue p-3.5 rounded-xl text-left transition shadow">
+                <div class="text-xs font-bold uppercase text-gray-400">Sin Registro</div>
+                <div class="flex items-baseline justify-between mt-1">
+                    <span id="countSinRegistro" class="text-2xl font-black text-ttr-blue font-mono">0</span>
+                    <i class="fa-solid fa-magnifying-glass-question text-ttr-blue/40 text-lg"></i>
+                </div>
+            </button>
+        </section>
+
+        <!-- BARRA DE NAVEGACIÓN EN 4 PESTAÑAS -->
+        <nav class="flex border-b border-graphite-700 mb-6 overflow-x-auto space-x-2 scrollbar-none">
+            <button onclick="switchTab('mantenimientos')" id="tabBtnMantenimientos" class="py-3 px-5 text-sm font-bold border-b-2 border-ttr-lime text-ttr-lime flex items-center space-x-2 whitespace-nowrap transition">
+                <i class="fa-solid fa-wrench"></i>
+                <span>Mantenimientos</span>
+            </button>
+            <button onclick="switchTab('calendario')" id="tabBtnCalendario" class="py-3 px-5 text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-white flex items-center space-x-2 whitespace-nowrap transition">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Calendario</span>
+            </button>
+            <button onclick="switchTab('manual')" id="tabBtnManual" class="py-3 px-5 text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-white flex items-center space-x-2 whitespace-nowrap transition">
+                <i class="fa-solid fa-book-open"></i>
+                <span>Manual y Viajes</span>
+            </button>
+            <button onclick="switchTab('historial')" id="tabBtnHistorial" class="py-3 px-5 text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-white flex items-center space-x-2 whitespace-nowrap transition">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>Historial y Respaldo</span>
+            </button>
+        </nav>
+
+        <!-- PESTAÑA 1: MANTENIMIENTOS -->
+        <div id="tabContentMantenimientos" class="tab-pane space-y-6">
+            <!-- Buscador y Filtros -->
+            <div class="flex flex-col md:flex-row gap-3 items-center justify-between bg-graphite-800 p-4 rounded-2xl border border-graphite-700">
+                <div class="relative w-full md:w-80">
+                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" oninput="renderMaintenanceList()" placeholder="Buscar tarea o nota técnica..." class="w-full bg-graphite-900 border border-graphite-700 rounded-xl pl-9 pr-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-ttr-lime">
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    <!-- Filtro Categoría -->
+                    <select id="categoryFilter" onchange="renderMaintenanceList()" class="bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-ttr-lime">
+                        <option value="todas">Todas las Categorías</option>
+                        <option value="Motor y Aceite">Motor y Aceite</option>
+                        <option value="Transmisión y Cadena">Transmisión y Cadena</option>
+                        <option value="Frenos">Frenos</option>
+                        <option value="Llantas y Rines">Llantas y Rines</option>
+                        <option value="Guayas y Controles">Guayas y Controles</option>
+                        <option value="Suspensión, Dirección y Chasis">Suspensión, Dirección y Chasis</option>
+                        <option value="Sistema Eléctrico y Batería">Sistema Eléctrico y Batería</option>
+                        <option value="Lavado y Anticorrosión">Lavado y Anticorrosión</option>
+                        <option value="Documentación y Legal">Documentación y Legal</option>
+                    </select>
+
+                    <!-- Filtro Estado -->
+                    <select id="statusFilter" onchange="renderMaintenanceList()" class="bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-ttr-lime">
+                        <option value="todos">Todos los Estados</option>
+                        <option value="vencidos">Solo Vencidos</option>
+                        <option value="proximos">Solo Próximos</option>
+                        <option value="aldia">Solo Al Día</option>
+                        <option value="sinregistro">Solo Sin Registro</option>
+                    </select>
+
+                    <button onclick="openNewTaskModal()" class="bg-ttr-blue/10 hover:bg-ttr-blue/20 text-ttr-blue border border-ttr-blue/40 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ml-auto md:ml-0">
+                        <i class="fa-solid fa-plus"></i> Nuevo Proceso
+                    </button>
+                </div>
+            </div>
+
+            <!-- Grilla de Tarjetas de Mantenimiento -->
+            <div id="maintenanceCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+
+        <!-- PESTAÑA 2: CALENDARIO -->
+        <div id="tabContentCalendario" class="tab-pane hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Calendario Grid -->
+                <div class="lg:col-span-2 bg-graphite-800 border border-graphite-700 rounded-2xl p-4 sm:p-6 shadow-xl">
+                    <!-- Header Calendario -->
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 id="calendarMonthYear" class="text-lg font-black text-white uppercase tracking-wider font-mono">---</h2>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="changeMonth(-1)" class="bg-graphite-900 border border-graphite-700 hover:border-ttr-lime text-white p-2 rounded-xl transition">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <button onclick="goToCurrentMonth()" class="bg-graphite-700 hover:bg-graphite-600 text-xs font-bold px-3 py-2 rounded-xl text-white transition">
+                                Hoy
+                            </button>
+                            <button onclick="changeMonth(1)" class="bg-graphite-900 border border-graphite-700 hover:border-ttr-lime text-white p-2 rounded-xl transition">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Días Semana -->
+                    <div class="grid grid-cols-7 gap-1 text-center font-mono text-xs text-gray-400 font-bold mb-2">
+                        <span>LUN</span><span>MAR</span><span>MIÉ</span><span>JUE</span><span>VIE</span><span>SÁB</span><span>DOM</span>
+                    </div>
+
+                    <!-- Días del Mes -->
+                    <div id="calendarDaysGrid" class="grid grid-cols-7 gap-1">
+                        <!-- Generado por JS -->
+                    </div>
+
+                    <!-- Leyenda del Calendario -->
+                    <div class="mt-6 pt-4 border-t border-graphite-700 flex flex-wrap gap-4 text-xs font-medium text-gray-300">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                            <span>Servicio Realizado</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                            <span>Mantenimiento Vencido</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                            <span>Próximo Estimado</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-ttr-blue"></span>
+                            <span>Hito / Registro Odómetro</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel Lateral de Detalle del Día Seleccionado -->
+                <div class="bg-graphite-800 border border-graphite-700 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
+                    <div>
+                        <div class="flex items-center justify-between mb-4 border-b border-graphite-700 pb-3">
+                            <h3 id="selectedDateTitle" class="font-mono font-bold text-ttr-lime text-base">Selecciona un día</h3>
+                            <i class="fa-regular fa-calendar-check text-ttr-lime text-xl"></i>
+                        </div>
+                        <div id="selectedDateEvents" class="space-y-3">
+                            <p class="text-xs text-gray-400 text-center py-8">Haz clic en cualquier fecha del calendario para ver los mantenimientos programados o el historial registrado de ese día.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 3: MANUAL Y VIAJES -->
+        <div id="tabContentManual" class="tab-pane hidden space-y-6">
+            
+            <!-- Sub-sección 1: Ficha Técnica -->
+            <div class="bg-graphite-800 border border-graphite-700 rounded-2xl p-5">
+                <div class="flex items-center space-x-3 mb-4">
+                    <i class="fa-solid fa-motorcycle text-ttr-lime text-2xl"></i>
+                    <div>
+                        <h2 class="font-black text-white text-lg">Ficha Técnica Oficial AKT TTR 200 Euro 3</h2>
+                        <p class="text-xs text-gray-400">Especificaciones extraídas del manual del propietario de fábrica</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                    <div class="bg-graphite-900 p-3 rounded-xl border border-graphite-700">
+                        <span class="text-gray-400 block font-semibold mb-1">Motor</span>
+                        <span class="font-mono font-bold text-white text-sm">4T OHC Monocilíndrico</span>
+                        <span class="text-[10px] text-gray-400 block mt-0.5">197 cc (Diámetro 63.5 x Carrera 62.2 mm)</span>
+                    </div>
+
+                    <div class="bg-graphite-900 p-3 rounded-xl border border-graphite-700">
+                        <span class="text-gray-400 block font-semibold mb-1">Potencia y Torque</span>
+                        <span class="font-mono font-bold text-ttr-lime text-sm">16.5 HP @ 8500 RPM</span>
+                        <span class="text-[10px] text-gray-400 block mt-0.5">Torque Máx: 15.5 N·m @ 6500 RPM</span>
+                    </div>
+
+                    <div class="bg-graphite-900 p-3 rounded-xl border border-graphite-700">
+                        <span class="text-gray-400 block font-semibold mb-1">Aceite de Motor 4T</span>
+                        <span class="font-mono font-bold text-white text-sm">1200 cc (1.2 Litros)</span>
+                        <span class="text-[10px] text-ttr-blue block mt-0.5 font-semibold">SAE 20W-50 API SN / Castrol 4T</span>
+                    </div>
+
+                    <div class="bg-graphite-900 p-3 rounded-xl border border-graphite-700">
+                        <span class="text-gray-400 block font-semibold mb-1">Presión de Llantas</span>
+                        <span class="font-mono font-bold text-white text-sm">30 PSI Del / 32 PSI Tras</span>
+                        <span class="text-[10px] text-gray-400 block mt-0.5">90/90-19 y 110/90-17 (con neumático)</span>
+                    </div>
+
+                    <div class="bg-graphite-900 p-3 rounded-xl border border-graphite-700">
+                        <span class="text-gray-400 block font-semibold mb-1">Compresión y Combustible</span>
+                        <span class="font-mono font-bold text-white text-sm">9.2 : 1 (Gasolina Corriente)</span>
+                        <span class="text-[10px] text-gray-400 block mt-0.5">Tanque 2.9 Gal (11 Litros)</span>
+                    </div>
+
+                    <div class="bg-graphite-900 p-3 rounded-xl border border-graphite-700">
+                        <span class="text-gray-400 block font-semibold mb-1">Batería Especificada</span>
+                        <span class="font-mono font-bold text-white text-sm">Gel 12N7B-BS (12V 7Ah)</span>
+                        <span class="text-[10px] text-gray-400 block mt-0.5">Libre de mantenimiento sellada</span>
+                    </div>
+
+                    <div class="bg-graphite-900 p-3 rounded-xl border border-graphite-700">
+                        <span class="text-gray-400 block font-semibold mb-1">Transmisión</span>
+                        <span class="font-mono font-bold text-white text-sm">6 Velocidades</span>
+                        <span class="text-[10px] text-gray-400 block mt-0.5">Cadena 428 / Clutch multidisco húmedo</span>
+                    </div>
+
+                    <div class="bg-graphite-900 p-3 rounded-xl border border-graphite-700">
+                        <span class="text-gray-400 block font-semibold mb-1">Sistema Eléctrico</span>
+                        <span class="font-mono font-bold text-white text-sm">Luces AHO Euro 3 + USB 5V</span>
+                        <span class="text-[10px] text-gray-400 block mt-0.5">Freno disco lobulado ambas ruedas</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sub-sección 2: Tabla Oficial de Torques de Apriete -->
+            <div class="bg-graphite-800 border border-graphite-700 rounded-2xl p-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h2 class="font-black text-white text-lg">Tabla de Torques Oficial (N·m)</h2>
+                        <p class="text-xs text-gray-400">Valores estándar de apriete para tornillería M4 a M36 según grado de dureza</p>
+                    </div>
+                    <input type="text" id="torqueSearch" oninput="filterTorqueTable()" placeholder="Buscar rosca (ej. M8, M10)..." class="bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-ttr-lime">
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs font-mono">
+                        <thead class="bg-graphite-900 text-ttr-lime border-b border-graphite-700 uppercase">
+                            <tr>
+                                <th class="p-2.5">Rosca</th>
+                                <th class="p-2.5">Grado 4.6</th>
+                                <th class="p-2.5">Grado 5.6</th>
+                                <th class="p-2.5">Grado 8.8 (Estándar)</th>
+                                <th class="p-2.5">Grado 10.9</th>
+                                <th class="p-2.5">Grado 12.9 (Alta Dureza)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="torqueTableBody" class="divide-y divide-graphite-700 text-gray-300">
+                            <!-- JS populated -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sub-sección 3: Checklist Interactivo para Viajes Largos (>500 km) -->
+            <div class="bg-graphite-800 border border-graphite-700 rounded-2xl p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-solid fa-route text-ttr-blue text-2xl"></i>
+                        <div>
+                            <h2 class="font-black text-white text-lg">Checklist Pre-Viaje Largo (>500 KM)</h2>
+                            <p class="text-xs text-gray-400">Puntos de inspección requeridos por el manual (págs. 45-46)</p>
+                        </div>
+                    </div>
+                    <button onclick="resetTripChecklist()" class="text-xs font-bold text-gray-400 hover:text-white bg-graphite-700 px-3 py-1.5 rounded-lg transition">
+                        Reiniciar Listado
+                    </button>
+                </div>
+
+                <div id="tripChecklistGrid" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 4: HISTORIAL Y RESPALDO -->
+        <div id="tabContentHistorial" class="tab-pane hidden space-y-6">
+            
+            <!-- Resumen Estadístico de Gastos e Historial -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-graphite-800 border border-graphite-700 p-4 rounded-2xl">
+                    <span class="text-xs font-bold text-gray-400 uppercase">Gasto Acumulado Mantenimientos</span>
+                    <div class="text-2xl font-black text-ttr-lime font-mono mt-1" id="totalCostDisplay">$0 COP</div>
+                </div>
+
+                <div class="bg-graphite-800 border border-graphite-700 p-4 rounded-2xl">
+                    <span class="text-xs font-bold text-gray-400 uppercase">Total Servicios Registrados</span>
+                    <div class="text-2xl font-black text-white font-mono mt-1" id="totalLogsDisplay">0</div>
+                </div>
+
+                <div class="bg-graphite-800 border border-graphite-700 p-4 rounded-2xl">
+                    <span class="text-xs font-bold text-gray-400 uppercase">Lecturas de Odómetro</span>
+                    <div class="text-2xl font-black text-ttr-blue font-mono mt-1" id="totalOdoLogsDisplay">0</div>
+                </div>
+            </div>
+
+            <!-- Panel de Importación / Exportación / Respaldo -->
+            <div class="bg-graphite-800 border border-graphite-700 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                    <h3 class="font-bold text-white text-base">Gestión de Copia de Seguridad</h3>
+                    <p class="text-xs text-gray-400">Guarda tus datos localmente en formato JSON o restablécelos en caso de cambio de dispositivo.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="exportBackupJSON()" class="bg-graphite-700 hover:bg-graphite-600 border border-graphite-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2">
+                        <i class="fa-solid fa-download text-ttr-lime"></i> Exportar JSON
+                    </button>
+                    <label class="bg-graphite-700 hover:bg-graphite-600 border border-graphite-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-upload text-ttr-blue"></i> Importar JSON
+                        <input type="file" id="importJsonInput" accept=".json" onchange="importBackupJSON(event)" class="hidden">
+                    </label>
+                    <button onclick="resetToFactoryData()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2">
+                        <i class="fa-solid fa-trash-can"></i> Restablecer Datos
+                    </button>
+                </div>
+            </div>
+
+            <!-- Timeline de Servicios e Historial Completo -->
+            <div class="bg-graphite-800 border border-graphite-700 rounded-2xl p-5">
+                <h3 class="font-black text-white text-base mb-4">Línea de Tiempo Completa de Mantenimientos</h3>
+                <div id="historyTimelineList" class="space-y-4">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="max-w-7xl mx-auto px-4 py-4 text-center text-xs text-gray-500 font-mono border-t border-graphite-800">
+        MotoTrack v2.0 — AKT TTR 200 Euro 3 • Todos los derechos reservados • Sistema con Persistencia Local
+    </footer>
+
+    <!-- MODAL 1: REGISTRAR MANTENIMIENTO REALIZADO -->
+    <div id="modalLogService" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-graphite-800 border border-graphite-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+            <button onclick="closeModal('modalLogService')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-ttr-lime/10 border border-ttr-lime flex items-center justify-center text-ttr-lime font-bold">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <div>
+                    <h3 id="modalLogTitle" class="font-bold text-white text-base">Registrar Mantenimiento</h3>
+                    <p id="modalLogCategory" class="text-xs text-ttr-lime font-mono">Categoría</p>
+                </div>
+            </div>
+
+            <form id="serviceLogForm" onsubmit="saveServiceLog(event)" class="space-y-4 text-xs">
+                <input type="hidden" id="modalTaskId">
+
+                <div>
+                    <label class="block font-bold text-gray-300 mb-1">Fecha de Realización</label>
+                    <input type="date" id="modalLogDate" required class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-lime font-mono">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-gray-300 mb-1">Kilometraje al realizar (KM)</label>
+                        <input type="number" id="modalLogKm" required min="0" class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-lime font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-300 mb-1">Costo Estimado / Real (COP)</label>
+                        <input type="number" id="modalLogCost" min="0" placeholder="0" class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-lime font-mono">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-gray-300 mb-1">Taller / Mecánico / Lugar</label>
+                    <input type="text" id="modalLogShop" placeholder="Ej: Concesionario AKT / Taller Propio" class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-lime">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-gray-300 mb-1">Notas Adicionales / Repuestos Usados</label>
+                    <textarea id="modalLogNotes" rows="3" placeholder="Ej: Se usó aceite Castrol Power 1 20W-50 y filtro original..." class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-lime"></textarea>
+                </div>
+
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('modalLogService')" class="bg-graphite-700 text-gray-300 px-4 py-2.5 rounded-xl font-bold hover:bg-graphite-600 transition">Cancelar</button>
+                    <button type="submit" class="bg-ttr-lime text-black px-5 py-2.5 rounded-xl font-extrabold hover:bg-lime-400 transition">Guardar Registro</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: ACTUALIZAR ODÓMETRO -->
+    <div id="modalOdometer" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-graphite-800 border border-graphite-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            <button onclick="closeModal('modalOdometer')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-ttr-blue/10 border border-ttr-blue flex items-center justify-center text-ttr-blue font-bold">
+                    <i class="fa-solid fa-gauge-high"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white text-base">Registrar Nuevo Kilometraje</h3>
+                    <p class="text-xs text-gray-400">Actualiza el odómetro para recalcular todos los mantenimientos</p>
+                </div>
+            </div>
+
+            <form onsubmit="saveOdometerLog(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-gray-300 mb-1">Nuevo Lectura de Kilometraje (KM)</label>
+                    <input type="number" id="modalOdoInput" required min="0" class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2.5 text-white font-mono text-lg font-bold focus:outline-none focus:border-ttr-blue">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-gray-300 mb-1">Fecha de la Lectura</label>
+                    <input type="date" id="modalOdoDate" required class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-blue font-mono">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-gray-300 mb-1">Nota Opcional (ej. Tanqueo / Viaje)</label>
+                    <input type="text" id="modalOdoNote" placeholder="Ej: Tanque lleno en Gasolinera Central..." class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-blue">
+                </div>
+
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('modalOdometer')" class="bg-graphite-700 text-gray-300 px-4 py-2.5 rounded-xl font-bold hover:bg-graphite-600 transition">Cancelar</button>
+                    <button type="submit" class="bg-ttr-blue text-black px-5 py-2.5 rounded-xl font-extrabold hover:bg-sky-400 transition">Actualizar KM</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: CONFIGURACIÓN DE MOTO & MODOS NUEVA/USADA -->
+    <div id="modalBikeConfig" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-graphite-800 border border-graphite-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('modalBikeConfig')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-ttr-lime/10 border border-ttr-lime flex items-center justify-center text-ttr-lime font-bold">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white text-base">Configuración de la Motocicleta</h3>
+                    <p class="text-xs text-gray-400">Ajusta los parámetros de tu AKT TTR 200</p>
+                </div>
+            </div>
+
+            <!-- Banner V2 Multi-Moto Extensible -->
+            <div class="bg-ttr-blue/10 border border-ttr-blue/30 p-3 rounded-xl mb-4 text-xs">
+                <div class="flex items-center justify-between font-bold text-ttr-blue mb-1">
+                    <span>Modelo Activo: AKT TTR 200 Euro 3</span>
+                    <span class="bg-ttr-blue text-black text-[9px] px-1.5 py-0.5 rounded uppercase">V2 Lista</span>
+                </div>
+                <p class="text-gray-300 text-[11px]">Arquitectura modular preparada para soporte Multi-Moto. Próximamente en la versión comercial v2 podrás alternar entre diferentes marcas y modelos.</p>
+            </div>
+
+            <form onsubmit="saveBikeConfig(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-gray-300 mb-1">Condición de Adquisición</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="border border-graphite-700 bg-graphite-900 p-3 rounded-xl flex items-center space-x-2 cursor-pointer hover:border-ttr-lime">
+                            <input type="radio" name="bikeCondition" value="nueva" id="condNueva" class="text-ttr-lime focus:ring-0">
+                            <div>
+                                <span class="font-bold text-white block">Nueva (Cero KM)</span>
+                                <span class="text-[10px] text-gray-400">Asume estado de fábrica para mantenimientos iniciales</span>
+                            </div>
+                        </label>
+                        <label class="border border-graphite-700 bg-graphite-900 p-3 rounded-xl flex items-center space-x-2 cursor-pointer hover:border-ttr-lime">
+                            <input type="radio" name="bikeCondition" value="usada" id="condUsada" class="text-ttr-lime focus:ring-0">
+                            <div>
+                                <span class="font-bold text-white block">Usada / Segunda</span>
+                                <span class="text-[10px] text-gray-400">Marca "Sin registro - Inspeccionar" si no hay historial</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-gray-300 mb-1">Fecha de Compra / Inicio</label>
+                        <input type="date" id="configPurchaseDate" required class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-lime font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-300 mb-1">Placa Opcional</label>
+                        <input type="text" id="configPlate" placeholder="Ej: XYZ-12G" class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white uppercase focus:outline-none focus:border-ttr-lime font-mono">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-gray-300 mb-1">Odómetro Inicial (KM)</label>
+                        <input type="number" id="configInitialOdo" min="0" required class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-lime font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-300 mb-1">Promedio Manual (KM/día)</label>
+                        <input type="number" step="0.1" min="0" id="configManualAvg" placeholder="Ej: 25.0" class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-lime font-mono">
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('modalBikeConfig')" class="bg-graphite-700 text-gray-300 px-4 py-2.5 rounded-xl font-bold hover:bg-graphite-600 transition">Cancelar</button>
+                    <button type="submit" class="bg-ttr-lime text-black px-5 py-2.5 rounded-xl font-extrabold hover:bg-lime-400 transition">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: CREAR PROCESO PERSONALIZADO -->
+    <div id="modalNewTask" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-graphite-800 border border-graphite-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('modalNewTask')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-ttr-lime/10 border border-ttr-lime flex items-center justify-center text-ttr-lime font-bold">
+                    <i class="fa-solid fa-folder-plus"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white text-base">Crear Tarea Personalizada</h3>
+                    <p class="text-xs text-gray-400">Agrega un nuevo mantenimiento específico a tu bitácora</p>
+                </div>
+            </div>
+
+            <form onsubmit="saveNewCustomTask(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-gray-300 mb-1">Nombre del Mantenimiento</label>
+                    <input type="text" id="newTaskName" required placeholder="Ej: Cambio de exploradoras LED" class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-lime">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-gray-300 mb-1">Categoría</label>
+                        <select id="newTaskCategory" class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-lime">
+                            <option value="Motor y Aceite">Motor y Aceite</option>
+                            <option value="Transmisión y Cadena">Transmisión y Cadena</option>
+                            <option value="Frenos">Frenos</option>
+                            <option value="Llantas y Rines">Llantas y Rines</option>
+                            <option value="Guayas y Controles">Guayas y Controles</option>
+                            <option value="Suspensión, Dirección y Chasis">Suspensión, Dirección y Chasis</option>
+                            <option value="Sistema Eléctrico y Batería">Sistema Eléctrico y Batería</option>
+                            <option value="Lavado y Anticorrosión">Lavado y Anticorrosión</option>
+                            <option value="Documentación y Legal">Documentación y Legal</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-300 mb-1">Intervalo en Kilómetros</label>
+                        <input type="number" id="newTaskIntervalKm" placeholder="Ej: 3000 (0 si no aplica)" class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-lime font-mono">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-gray-300 mb-1">Intervalo en Días</label>
+                        <input type="number" id="newTaskIntervalDays" placeholder="Ej: 90 (0 si no aplica)" class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-lime font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-300 mb-1">Costo Estimado (COP)</label>
+                        <input type="number" id="newTaskCost" placeholder="0" class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-lime font-mono">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-gray-300 mb-1">Nota Técnica / Recomendación</label>
+                    <textarea id="newTaskTechnicalNote" rows="2" placeholder="Especificaciones, tipo de grasa, torque o referencias..." class="w-full bg-graphite-900 border border-graphite-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-ttr-lime"></textarea>
+                </div>
+
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('modalNewTask')" class="bg-graphite-700 text-gray-300 px-4 py-2.5 rounded-xl font-bold hover:bg-graphite-600 transition">Cancelar</button>
+                    <button type="submit" class="bg-ttr-lime text-black px-5 py-2.5 rounded-xl font-extrabold hover:bg-lime-400 transition">Crear Proceso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT PRINCIPAL Y LOGICA DE APLICACION -->
+    <script>
+        /* ==========================================================================
+           1. ARQUITECTURA MODULAR V2: CATALOGO DE MOTOCICLETAS
+           ========================================================================== */
+        const MOTO_CATALOG = {
+            "AKT_TTR_200_EURO3": {
+                id: "AKT_TTR_200_EURO3",
+                brand: "AKT Motores",
+                model: "TTR 200",
+                spec: "Euro 3",
+                engine: "4T OHC Monocilíndrico 197 cc",
+                power: "16.5 HP @ 8500 RPM",
+                torque: "15.5 N·m @ 6500 RPM",
+                oilCapacity: "1200 cc SAE 20W-50 API SN",
+                tires: "Del. 90/90-19 (30 PSI) / Tras. 110/90-17 (32 PSI)",
+                battery: "Gel 12N7B-BS 12V 7Ah",
+                warrantyMonths: 24,
+                warrantyKm: 24000
+            }
+        };
+
+        /* ==========================================================================
+           2. TAREAS BASE OFICIALES DE FACTORIA DE LA AKT TTR 200 (MANUAL ORIGINAL)
+           ========================================================================== */
+        const INITIAL_TASKS_DATABASE = [
+            // 1. MOTOR Y ACEITE
+            {
+                id: "mot_aceite_nivel",
+                nombre: "Revisión Nivel de Aceite 4T",
+                categoria: "Motor y Aceite",
+                intervaloKm: 500,
+                intervaloDias: 15,
+                notaTecnica: "Revisar con motor frío, moto vertical en superficie plana. Limpiar varilla y verificar sin roscar. Mantener entre marcas MIN y MAX.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 0
+            },
+            {
+                id: "mot_aceite_cambio",
+                nombre: "Cambio de Aceite de Motor 4T",
+                categoria: "Motor y Aceite",
+                primerServicioKm: 500,
+                intervaloKm: 2000,
+                intervaloDias: 90,
+                notaTecnica: "Capacidad: 1200 cc (1.2 Litros). Usar SAE 20W-50 API SN o superior (Recomendado Castrol Power 1 4T). Cambiar con motor tibio.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 45000
+            },
+            {
+                id: "mot_filtro_aire_limpieza",
+                nombre: "Limpieza de Filtro de Aire",
+                categoria: "Motor y Aceite",
+                intervaloKm: 2000,
+                intervaloDias: 60,
+                notaTecnica: "Retirar la silla y tapa de caja de aire. Lavar elemento con solvente no inflamable, secar y lubricar ligeramente con aceite. Más seguido en polvo.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 10000
+            },
+            {
+                id: "mot_filtro_aire_cambio",
+                nombre: "Cambio de Filtro de Aire",
+                categoria: "Motor y Aceite",
+                intervaloKm: 6000,
+                intervaloDias: 180,
+                notaTecnica: "Reemplazo por filtro de espuma de alta densidad original AKT.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 25000
+            },
+            {
+                id: "mot_cedazo_aceite",
+                nombre: "Limpieza de Cedazo y Filtro Centrífugo de Aceite",
+                categoria: "Motor y Aceite",
+                intervaloKm: 4000,
+                intervaloDias: null,
+                notaTecnica: "Drenar aceite, retirar tapa derecha del motor y limpiar cedazo de mallas retenedoras de impurezas metálicas.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 35000
+            },
+            {
+                id: "mot_bujia_calibracion",
+                nombre: "Revisión y Calibración de Bujía",
+                categoria: "Motor y Aceite",
+                intervaloKm: 4000,
+                intervaloDias: null,
+                notaTecnica: "Inspeccionar electrodo y calibrar luz entre 0.6 mm y 0.7 mm. Usar gasolina corriente sin plomo (compresión 9.2:1).",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 8000
+            },
+            {
+                id: "mot_bujia_cambio",
+                nombre: "Cambio de Bujía",
+                categoria: "Motor y Aceite",
+                intervaloKm: 8000,
+                intervaloDias: null,
+                notaTecnica: "Sustitución de bujía por especificada en el manual.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 22000
+            },
+            {
+                id: "mot_valvulas",
+                nombre: "Calibración de Válvulas / Culata",
+                categoria: "Motor y Aceite",
+                intervaloKm: 5000,
+                intervaloDias: null,
+                notaTecnica: "Calibrar holgura de válvulas de admisión y escape en frío según especificación de taller.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 40000
+            },
+            {
+                id: "mot_carburador",
+                nombre: "Limpieza y Sincronización de Carburador / Ralentí",
+                categoria: "Motor y Aceite",
+                intervaloKm: 6000,
+                intervaloDias: 180,
+                notaTecnica: "Limpiar chicleres, vaso de flotación y ajustar ralentí a 1400 ± 100 RPM.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 45000
+            },
+            {
+                id: "mot_llave_gasolina",
+                nombre: "Revisión Llave de Gasolina (ON/OFF/RES) y Mangueras",
+                categoria: "Motor y Aceite",
+                intervaloKm: 2000,
+                intervaloDias: null,
+                notaTecnica: "Verificar ausencias de fisuras en mangueras. Mantener la llave en OFF cuando la moto esté parqueada.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 0
+            },
+
+            // 2. TRANSMISIÓN Y CADENA
+            {
+                id: "trans_cadena_tension",
+                nombre: "Revisión Semanal de Tensión de Cadena",
+                categoria: "Transmisión y Cadena",
+                intervaloKm: 300,
+                intervaloDias: 7,
+                notaTecnica: "Con moto en gato central, girar rueda y buscar el punto más tenso. Holgura vertical debe ser entre 1.5 y 2.5 cm.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 0
+            },
+            {
+                id: "trans_cadena_lubricacion",
+                nombre: "Limpieza, Tensión y Lubricación de Cadena",
+                categoria: "Transmisión y Cadena",
+                intervaloKm: 500,
+                intervaloDias: 15,
+                notaTecnica: "Recomendación oficial del manual AKT cada 500 km. Desengrasar con cepillo suave y aplicar lubricante especial para cadenas.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 12000
+            },
+            {
+                id: "trans_arrastre_inspeccion",
+                nombre: "Inspección de Kit de Arrastre",
+                categoria: "Transmisión y Cadena",
+                intervaloKm: 2000,
+                intervaloDias: null,
+                notaTecnica: "Inspeccionar desgaste de dientes en piñón de salida y sprocket trasero. Revisar desgaste de empalmes.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 0
+            },
+            {
+                id: "trans_arrastre_cambio",
+                nombre: "Cambio de Kit de Arrastre Completo",
+                categoria: "Transmisión y Cadena",
+                intervaloKm: 15000,
+                intervaloDias: null,
+                notaTecnica: "Reemplazo de cadena 428, piñón y sprocket.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 140000
+            },
+
+            // 3. FRENOS
+            {
+                id: "fre_pastillas_insp",
+                nombre: "Inspección Pastillas del/tras y Líneas de Freno",
+                categoria: "Frenos",
+                intervaloKm: 1000,
+                intervaloDias: 30,
+                notaTecnica: "Verificar ranuras límites de desgaste en pastillas lobuladas. Comprobar dureza de manigueta y recorrido del pedal.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 0
+            },
+            {
+                id: "fre_pastillas_del_cambio",
+                nombre: "Cambio Pastillas de Freno Delanteras",
+                categoria: "Frenos",
+                intervaloKm: 6000,
+                intervaloDias: null,
+                notaTecnica: "Sustitución de pastillas de disco delantero por orgánicas o semimetálicas.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 32000
+            },
+            {
+                id: "fre_pastillas_tras_cambio",
+                nombre: "Cambio Pastillas de Freno Traseras",
+                categoria: "Frenos",
+                intervaloKm: 6000,
+                intervaloDias: null,
+                notaTecnica: "Sustitución de pastillas de disco trasero.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 32000
+            },
+            {
+                id: "fre_liquido_revision",
+                nombre: "Revisión Nivel y Color de Líquido de Frenos",
+                categoria: "Frenos",
+                intervaloKm: 2000,
+                intervaloDias: 60,
+                notaTecnica: "Revisar visor en depósitos delantero y trasero. Si el nivel cae o se oscurece, verificar desgaste de pastillas o fugas.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 0
+            },
+            {
+                id: "fre_liquido_cambio",
+                nombre: "Cambio Total de Líquido de Frenos",
+                categoria: "Frenos",
+                intervaloKm: 20000,
+                intervaloDias: 365,
+                notaTecnica: "Manual pág. 21: Sustitución completa y purgado del sistema DOT 4 cada 1 año o 20,000 km.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 30000
+            },
+
+            // 4. LLANTAS Y RINES
+            {
+                id: "llan_presion",
+                nombre: "Calibración de Presión de Aire en Frío",
+                categoria: "Llantas y Rines",
+                intervaloKm: 500,
+                intervaloDias: 7,
+                notaTecnica: "Delantera 90/90-19 a 30 PSI; Trasera 110/90-17 a 32 PSI (con neumático). Medir siempre con llantas frías.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 0
+            },
+            {
+                id: "llan_inspeccion_radios",
+                nombre: "Inspección Desgaste, Radios y Rines",
+                categoria: "Llantas y Rines",
+                intervaloKm: 1000,
+                intervaloDias: 30,
+                notaTecnica: "Revisar labrado de llanta, grietas y tensión de radios de ruedas de alambre. Evitar contacto con derivados del petróleo.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 15000
+            },
+
+            // 5. GUAYAS Y CONTROLES
+            {
+                id: "guaya_lubricacion",
+                nombre: "Revisión, Tensión y Lubricación de Guayas (Clutch y Acelerador)",
+                categoria: "Guayas y Controles",
+                intervaloKm: 2000,
+                intervaloDias: 60,
+                notaTecnica: "Lubricar guayas con lubricante especial en aerosol. Dejar holgura libre de 2-3 mm en manigueta de clutch.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 10000
+            },
+            {
+                id: "guaya_pivotes",
+                nombre: "Lubricación de Pivotes, Soporte Lateral y Palanca Cambios",
+                categoria: "Guayas y Controles",
+                intervaloKm: 2000,
+                intervaloDias: null,
+                notaTecnica: "Aplicar grasa en articulación del gato lateral, pedal de cambio y pivotes de maniguetas.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 5000
+            },
+            {
+                id: "guaya_cambio_preventivo",
+                nombre: "Cambio Preventivo de Guayas",
+                categoria: "Guayas y Controles",
+                intervaloKm: 12000,
+                intervaloDias: null,
+                notaTecnica: "Reemplazo preventivo de guaya de clutch y guaya de acelerador para prevenir rupturas en ruta.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 28000
+            },
+
+            // 6. SUSPENSIÓN, DIRECCIÓN Y CHASIS
+            {
+                id: "susp_reapriete",
+                nombre: "Reapriete General de Tornillería y Tuercas con Torque",
+                categoria: "Suspensión, Dirección y Chasis",
+                primerServicioKm: 500,
+                intervaloKm: 2000,
+                intervaloDias: null,
+                notaTecnica: "Revisar pasadores de motor, tijera, soporte de posapiés y tornillos de manubrio con torquímetro.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 20000
+            },
+            {
+                id: "susp_cunas_direccion",
+                nombre: "Revisión y Ajuste de Cunas de Dirección",
+                categoria: "Suspensión, Dirección y Chasis",
+                intervaloKm: 4000,
+                intervaloDias: null,
+                notaTecnica: "Verificar holgura en el tren delantero. Engrasar y ajustar cunas para suavidad en el giro.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 25000
+            },
+            {
+                id: "susp_barras_unishock",
+                nombre: "Inspección de Suspensión Delantera y Unishock Trasero",
+                categoria: "Suspensión, Dirección y Chasis",
+                intervaloKm: 2000,
+                intervaloDias: null,
+                notaTecnica: "Inspeccionar retenedores de barras telescópicas en busca de fugas de aceite y rigidez de Unishock.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 0
+            },
+            {
+                id: "susp_aceite_barras",
+                nombre: "Cambio de Aceite de Barras Delanteras y Retenedores",
+                categoria: "Suspensión, Dirección y Chasis",
+                intervaloKm: 10000,
+                intervaloDias: 365,
+                notaTecnica: "Drenar fluido hidráulico de barras delanteras y remplazar sellos retenedores.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 75000
+            },
+            {
+                id: "susp_engrase_tijera",
+                nombre: "Engrase de Eje de Tijera y Ejes de Ruedas",
+                categoria: "Suspensión, Dirección y Chasis",
+                intervaloKm: 6000,
+                intervaloDias: null,
+                notaTecnica: "Desmontar eje de tijera trasera y ejes de ruedas para aplicar grasa de alta temperatura.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 35000
+            },
+
+            // 7. SISTEMA ELÉCTRICO Y BATERÍA
+            {
+                id: "elec_luces_general",
+                nombre: "Revisión de Sistema Eléctrico (AHO, Stop, Puerto USB 5V)",
+                categoria: "Sistema Eléctrico y Batería",
+                intervaloKm: 1000,
+                intervaloDias: 30,
+                notaTecnica: "Verificar luces encendidas automáticas AHO Euro 3, altas/bajas, direccionales, pito y voltaje en toma USB.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 0
+            },
+            {
+                id: "elec_bateria_limpieza",
+                nombre: "Limpieza y Mantenimiento de Bornes de Batería Gel",
+                categoria: "Sistema Eléctrico y Batería",
+                intervaloKm: 4000,
+                intervaloDias: 120,
+                notaTecnica: "Batería Gel 12N7B-BS libre de mantenimiento. Desconectar polo negativo (-) primero. Limpiar bornes, aplicar grasa protectora y conectar positivo (+) primero.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 5000
+            },
+
+            // 8. LAVADO Y ANTICORROSIÓN
+            {
+                id: "lav_general",
+                nombre: "Lavado General Preventivo",
+                categoria: "Lavado y Anticorrosión",
+                intervaloKm: null,
+                intervaloDias: 7,
+                notaTecnica: "Jabón de pH neutro y agua. NO usar chorros de agua a alta presión directamente en rodamientos, carburador ni tablero.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 15000
+            },
+            {
+                id: "lav_anticorrosivo",
+                nombre: "Aplicación de Protección Anticorrosiva / Anti-Óxido",
+                categoria: "Lavado y Anticorrosión",
+                intervaloKm: 1000,
+                intervaloDias: 30,
+                notaTecnica: "Aplicar lubricante dieléctrico / anticorrosivo en tornillería del chasis y partes expuestas a humedad.",
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: 12000
+            },
+
+            // 9. DOCUMENTACIÓN Y LEGAL
+            {
+                id: "doc_soat",
+                nombre: "Renovación de Seguro Obligatorio SOAT",
+                categoria: "Documentación y Legal",
+                intervaloKm: null,
+                intervaloDias: 365,
+                notaTecnica: "Obligatorio para circular. Renovación anual.",
+                ultimoKm: null,
+                ultimaFecha: "2026-09-08",
+                costoEstimado: 700000
+            },
+            {
+                id: "doc_tecnomecanica",
+                nombre: "Revisión Técnico-Mecánica y de Gases",
+                categoria: "Documentación y Legal",
+                intervaloKm: null,
+                intervaloDias: 730, // 2 años primera vez moto nueva
+                notaTecnica: "Moto nueva exenta por 2 años desde la fecha de matrícula/compra (08/09/2026). Luego anual.",
+                ultimoKm: null,
+                ultimaFecha: "2026-09-08",
+                costoEstimado: 210000
+            }
+        ];
+
+        /* ==========================================================================
+           3. ESTADO GLOBAL DE LA APLICACIÓN
+           ========================================================================== */
+        let userBike = {
+            modelId: "AKT_TTR_200_EURO3",
+            condicion: "nueva", // 'nueva' u 'usada'
+            fechaCompra: "2026-09-08",
+            odometroActual: 0,
+            odometroInicial: 0,
+            placa: "",
+            promedioKmDiaManual: null,
+            revisionesGarantia: [false, false, false, false, false]
+        };
+
+        let tasks = [];
+        let odometerHistory = [];
+        let serviceLogs = [];
+        let tripChecklistState = {};
+
+        // Control de UI
+        let currentTab = 'mantenimientos';
+        let currentFilterStatus = 'todos';
+        let calendarYear = 2026;
+        let calendarMonth = 8; // Septiembre (0-indexed)
+
+        /* ==========================================================================
+           4. INICIALIZACIÓN Y PERSISTENCIA (LOCALSTORAGE)
+           ========================================================================== */
+        window.onload = function() {
+            loadStateFromLocalStorage();
+            initializeDefaultDataIfNeeded();
+            renderHeaderTelemetry();
+            renderBreakInAndWarranty();
+            renderMaintenanceList();
+            renderCalendar();
+            renderTorqueTable();
+            renderTripChecklist();
+            renderHistoryTab();
+        };
+
+        function loadStateFromLocalStorage() {
+            try {
+                const savedBike = localStorage.getItem('mototrack_userBike');
+                if (savedBike) userBike = JSON.parse(savedBike);
+
+                const savedTasks = localStorage.getItem('mototrack_tasks');
+                if (savedTasks) tasks = JSON.parse(savedTasks);
+
+                const savedOdoHistory = localStorage.getItem('mototrack_odoHistory');
+                if (savedOdoHistory) odometerHistory = JSON.parse(savedOdoHistory);
+
+                const savedLogs = localStorage.getItem('mototrack_logs');
+                if (savedLogs) serviceLogs = JSON.parse(savedLogs);
+
+                const savedChecklist = localStorage.getItem('mototrack_checklist');
+                if (savedChecklist) tripChecklistState = JSON.parse(savedChecklist);
+            } catch (e) {
+                console.error("Error al cargar localStorage", e);
+            }
+        }
+
+        function saveStateToLocalStorage() {
+            localStorage.setItem('mototrack_userBike', JSON.stringify(userBike));
+            localStorage.setItem('mototrack_tasks', JSON.stringify(tasks));
+            localStorage.setItem('mototrack_odoHistory', JSON.stringify(odometerHistory));
+            localStorage.setItem('mototrack_logs', JSON.stringify(serviceLogs));
+            localStorage.setItem('mototrack_checklist', JSON.stringify(tripChecklistState));
+        }
+
+        function initializeDefaultDataIfNeeded() {
+            if (!tasks || tasks.length === 0) {
+                tasks = JSON.parse(JSON.stringify(INITIAL_TASKS_DATABASE));
+            }
+            if (!odometerHistory || odometerHistory.length === 0) {
+                odometerHistory = [{
+                    fecha: userBike.fechaCompra || "2026-09-08",
+                    km: userBike.odometroInicial || 0,
+                    nota: "Odómetro inicial de entrega"
+                }];
+            }
+        }
+
+        /* ==========================================================================
+           5. CÁLCULOS INTELIGENTES Y TELEMETRÍA
+           ========================================================================== */
+        function calculateAverageDailyKm() {
+            if (userBike.promedioKmDiaManual && userBike.promedioKmDiaManual > 0) {
+                return parseFloat(userBike.promedioKmDiaManual);
+            }
+
+            if (!odometerHistory || odometerHistory.length < 1) return 15.0; // Valor por defecto sensato
+
+            const firstReading = odometerHistory[0];
+            const currentKm = userBike.odometroActual;
+            
+            const firstDate = new Date(firstReading.fecha);
+            const today = new Date();
+
+            const diffTime = Math.max(1, today - firstDate);
+            const diffDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+            const kmDiff = Math.max(0, currentKm - firstReading.km);
+            const avg = kmDiff / diffDays;
+
+            return avg > 0 ? parseFloat(avg.toFixed(1)) : 15.0;
+        }
+
+        function getTaskCalculatedStatus(task) {
+            const currentKm = userBike.odometroActual;
+            const isUsada = userBike.condicion === 'usada';
+
+            // Si es usada y nunca se ha registrado
+            if (isUsada && !task.ultimoKm && !task.ultimaFecha) {
+                return {
+                    estado: "sinregistro",
+                    label: "Sin Registro — Inspeccionar",
+                    colorClass: "border-ttr-blue text-ttr-blue bg-ttr-blue/10",
+                    badgeColor: "bg-ttr-blue text-black",
+                    kmRestantes: null,
+                    diasRestantes: null,
+                    fechaEstimada: null,
+                    porcentaje: 0
+                };
+            }
+
+            let lastKm = task.ultimoKm;
+            let lastDateStr = task.ultimaFecha;
+
+            // Si es nueva y no hay registro previo, asume km 0 o fecha de compra
+            if (!lastKm && lastKm !== 0) {
+                lastKm = task.primerServicioKm ? 0 : 0;
+            }
+            if (!lastDateStr) {
+                lastDateStr = userBike.fechaCompra;
+            }
+
+            const targetKmInterval = (task.primerServicioKm && (!task.ultimoKm && task.ultimoKm !== 0))
+                ? task.primerServicioKm 
+                : task.intervaloKm;
+
+            let kmRestantes = null;
+            if (targetKmInterval) {
+                const proximoKmTarget = lastKm + targetKmInterval;
+                kmRestantes = proximoKmTarget - currentKm;
+            }
+
+            let diasRestantes = null;
+            let fechaEstimada = null;
+
+            if (task.intervaloDias && lastDateStr) {
+                const lastDateObj = new Date(lastDateStr);
+                const targetDateObj = new Date(lastDateObj);
+                targetDateObj.setDate(targetDateObj.getDate() + task.intervaloDias);
+
+                const today = new Date();
+                const diffTime = targetDateObj - today;
+                diasRestantes = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                fechaEstimada = targetDateObj.toISOString().split('T')[0];
+            } else if (kmRestantes !== null) {
+                const avgKmDay = calculateAverageDailyKm();
+                const daysToKm = Math.ceil(kmRestantes / Math.max(1, avgKmDay));
+                const today = new Date();
+                const targetDateObj = new Date(today);
+                targetDateObj.setDate(targetDateObj.getDate() + daysToKm);
+                fechaEstimada = targetDateObj.toISOString().split('T')[0];
+                diasRestantes = daysToKm;
+            }
+
+            // Determinar Vencido, Próximo o Al Día
+            let estado = "aldia";
+            let label = "Al Día";
+            let colorClass = "border-emerald-500/50 text-emerald-400 bg-emerald-500/10";
+            let badgeColor = "bg-emerald-500 text-black";
+
+            const esVencidoKm = (kmRestantes !== null && kmRestantes <= 0);
+            const esVencidoDias = (diasRestantes !== null && diasRestantes <= 0);
+
+            const esProximoKm = (kmRestantes !== null && kmRestantes > 0 && kmRestantes <= 500);
+            const esProximoDias = (diasRestantes !== null && diasRestantes > 0 && diasRestantes <= 15);
+
+            if (esVencidoKm || esVencidoDias) {
+                estado = "vencidos";
+                label = "¡Vencido / Atrasado!";
+                colorClass = "border-red-500/50 text-red-400 bg-red-500/10";
+                badgeColor = "bg-red-500 text-white animate-pulse";
+            } else if (esProximoKm || esProximoDias) {
+                estado = "proximos";
+                label = "Próximo Servicio";
+                colorClass = "border-amber-500/50 text-amber-400 bg-amber-500/10";
+                badgeColor = "bg-amber-500 text-black";
+            }
+
+            // Porcentaje transcurrido
+            let porcentaje = 0;
+            if (targetKmInterval && kmRestantes !== null) {
+                const transcurrido = targetKmInterval - kmRestantes;
+                porcentaje = Math.min(100, Math.max(0, Math.round((transcurrido / targetKmInterval) * 100)));
+            } else if (task.intervaloDias && diasRestantes !== null) {
+                const transcurridoDias = task.intervaloDias - diasRestantes;
+                porcentaje = Math.min(100, Math.max(0, Math.round((transcurridoDias / task.intervaloDias) * 100)));
+            }
+
+            return {
+                estado,
+                label,
+                colorClass,
+                badgeColor,
+                kmRestantes,
+                diasRestantes,
+                fechaEstimada,
+                porcentaje
+            };
+        }
+
+        /* ==========================================================================
+           6. RENDERS Y UI COMPONENTES
+           ========================================================================== */
+        function renderHeaderTelemetry() {
+            document.getElementById('currentOdoDisplay').textContent = userBike.odometroActual.toLocaleString();
+            document.getElementById('avgKmDayDisplay').textContent = calculateAverageDailyKm();
+            document.getElementById('headerPlate').textContent = userBike.placa ? `PLACA: ${userBike.placa.toUpperCase()}` : 'PLACA: AKT-200';
+            document.getElementById('headerCondition').textContent = `Modo: ${userBike.condicion === 'nueva' ? 'Nueva' : 'Usada'}`;
+        }
+
+        function renderBreakInAndWarranty() {
+            const currentKm = userBike.odometroActual;
+            const breakinCard = document.getElementById('breakinCard');
+            const breakinKmBadge = document.getElementById('breakinKmBadge');
+            const breakinProgressBar = document.getElementById('breakinProgressBar');
+
+            breakinKmBadge.textContent = `${currentKm} / 1000 km`;
+            const breakinPct = Math.min(100, (currentKm / 1000) * 100);
+            breakinProgressBar.style.width = `${breakinPct}%`;
+
+            if (userBike.condicion === 'usada' && currentKm >= 1000) {
+                breakinCard.classList.add('hidden');
+            } else {
+                breakinCard.classList.remove('hidden');
+            }
+
+            // Progreso Garantía (24 Meses o 24,000 KM)
+            const startDate = new Date(userBike.fechaCompra || "2026-09-08");
+            const endDate = new Date(startDate);
+            endDate.setFullYear(endDate.getFullYear() + 2);
+
+            const today = new Date();
+            const totalDays = (endDate - startDate) / (1000 * 60 * 60 * 24);
+            const elapsedDays = (today - startDate) / (1000 * 60 * 60 * 24);
+            
+            const daysPct = Math.min(100, Math.max(0, Math.round((elapsedDays / totalDays) * 100)));
+            const kmPct = Math.min(100, Math.max(0, Math.round((currentKm / 24000) * 100)));
+
+            document.getElementById('warrantyDaysPercent').textContent = `${daysPct}%`;
+            document.getElementById('warrantyDaysBar').style.width = `${daysPct}%`;
+
+            document.getElementById('warrantyKmPercent').textContent = `${kmPct}%`;
+            document.getElementById('warrantyKmBar').style.width = `${kmPct}%`;
+
+            const warrantyStatusText = document.getElementById('warrantyStatusText');
+            if (daysPct >= 100 || kmPct >= 100) {
+                warrantyStatusText.textContent = "EXPIRADA";
+                warrantyStatusText.className = "text-xs font-mono text-red-500 font-bold";
+            } else {
+                warrantyStatusText.textContent = "VIGENTE";
+                warrantyStatusText.className = "text-xs font-mono text-emerald-400 font-bold";
+            }
+
+            // Botones Revisiones Gratuitas
+            for (let i = 0; i < 5; i++) {
+                const btn = document.getElementById(`revBtn${i}`);
+                const icon = document.getElementById(`revIcon${i}`);
+                const isChecked = userBike.revisionesGarantia[i];
+
+                if (isChecked) {
+                    btn.className = "p-1.5 rounded-lg border border-ttr-lime bg-ttr-lime/20 text-ttr-lime text-center font-mono font-semibold text-xs flex flex-col items-center";
+                    icon.className = "fa-solid fa-square-check text-ttr-lime mt-1";
+                } else {
+                    btn.className = "p-1.5 rounded-lg border border-graphite-700 bg-graphite-900 text-gray-400 hover:border-gray-500 text-center font-mono font-semibold text-xs flex flex-col items-center";
+                    icon.className = "fa-regular fa-square mt-1";
+                }
+            }
+        }
+
+        function toggleWarrantyRevision(index) {
+            userBike.revisionesGarantia[index] = !userBike.revisionesGarantia[index];
+            saveStateToLocalStorage();
+            renderBreakInAndWarranty();
+        }
+
+        function renderMaintenanceList() {
+            const grid = document.getElementById('maintenanceCardsGrid');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const catVal = document.getElementById('categoryFilter').value;
+            const statusVal = document.getElementById('statusFilter').value;
+
+            let counts = { vencidos: 0, proximos: 0, aldia: 0, sinregistro: 0 };
+
+            grid.innerHTML = '';
+
+            tasks.forEach(task => {
+                const calc = getTaskCalculatedStatus(task);
+                counts[calc.estado]++;
+
+                // Filtros
+                if (catVal !== 'todas' && task.categoria !== catVal) return;
+                if (statusVal !== 'todos' && calc.estado !== statusVal) return;
+                if (currentFilterStatus !== 'todos' && calc.estado !== currentFilterStatus) return;
+
+                if (searchVal) {
+                    const matchName = task.nombre.toLowerCase().includes(searchVal);
+                    const matchNote = task.notaTecnica.toLowerCase().includes(searchVal);
+                    const matchCat = task.categoria.toLowerCase().includes(searchVal);
+                    if (!matchName && !matchNote && !matchCat) return;
+                }
+
+                // Generación de Tarjeta HTML
+                const cardHtml = `
+                    <div class="bg-graphite-800 border ${calc.colorClass.split(' ')[0]} rounded-2xl p-4 flex flex-col justify-between shadow-lg relative group transition hover:border-ttr-lime">
+                        <div>
+                            <div class="flex items-start justify-between gap-2 mb-2">
+                                <div>
+                                    <span class="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-wider block">${task.categoria}</span>
+                                    <h3 class="font-bold text-white text-base leading-snug">${task.nombre}</h3>
+                                </div>
+                                <span class="${calc.badgeColor} text-[10px] font-bold px-2 py-0.5 rounded-full font-mono uppercase whitespace-nowrap">
+                                    ${calc.label}
+                                </span>
+                            </div>
+
+                            <!-- Estado del Contador -->
+                            <div class="my-3 bg-graphite-900/80 p-3 rounded-xl border border-graphite-700/60 font-mono text-xs">
+                                ${calc.estado === 'sinregistro' ? `
+                                    <p class="text-ttr-blue font-bold flex items-center gap-1.5">
+                                        <i class="fa-solid fa-circle-info"></i> Modo Moto Usada: Sin historial
+                                    </p>
+                                    <p class="text-gray-400 text-[11px] mt-0.5">Se recomienda inspección preventiva inicial.</p>
+                                ` : `
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-gray-400">Progreso / Intervalo:</span>
+                                        <span class="font-bold text-white">${calc.porcentaje}%</span>
+                                    </div>
+                                    <div class="w-full bg-graphite-800 h-2 rounded-full overflow-hidden border border-graphite-700 mb-2">
+                                        <div class="h-full ${calc.estado === 'vencidos' ? 'bg-red-500' : (calc.estado === 'proximos' ? 'bg-amber-500' : 'bg-emerald-500')}" style="width: ${calc.porcentaje}%"></div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-2 text-[11px]">
+                                        <div>
+                                            <span class="text-gray-500 block">Km Restantes:</span>
+                                            <span class="font-bold ${calc.kmRestantes !== null && calc.kmRestantes <= 0 ? 'text-red-400' : 'text-gray-200'}">
+                                                ${calc.kmRestantes !== null ? (calc.kmRestantes <= 0 ? `Pasado ${Math.abs(calc.kmRestantes)} km` : `${calc.kmRestantes} km`) : 'N/A'}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500 block">Fecha Estimada:</span>
+                                            <span class="font-bold text-gray-200">${calc.fechaEstimada || 'Por KM'}</span>
+                                        </div>
+                                    </div>
+                                `}
+                            </div>
+
+                            <!-- Nota Técnica Oficial Desplegable -->
+                            <details class="text-xs text-gray-400 mb-3 bg-graphite-900/40 p-2.5 rounded-xl border border-graphite-700/40">
+                                <summary class="font-bold text-ttr-lime cursor-pointer flex items-center justify-between">
+                                    <span><i class="fa-solid fa-book-bookmark mr-1"></i> Nota del Manual AKT</span>
+                                    <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                </summary>
+                                <p class="mt-2 text-[11px] leading-relaxed text-gray-300 font-sans border-t border-graphite-700/40 pt-2">${task.notaTecnica}</p>
+                            </details>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="flex items-center justify-between pt-2 border-t border-graphite-700/60 gap-2">
+                            <div class="text-[10px] text-gray-500 font-mono">
+                                Último: ${task.ultimoKm !== null ? `${task.ultimoKm} km` : 'Sin datos'}
+                            </div>
+                            <div class="flex items-center space-x-1.5">
+                                <button onclick="openLogServiceModal('${task.id}')" class="bg-ttr-lime hover:bg-lime-400 text-black font-extrabold text-xs px-3 py-1.5 rounded-lg transition flex items-center gap-1 shadow">
+                                    <i class="fa-solid fa-check"></i> Registrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += cardHtml;
+            });
+
+            // Actualizar contadores superiores
+            document.getElementById('countVencidos').textContent = counts.vencidos;
+            document.getElementById('countProximos').textContent = counts.proximos;
+            document.getElementById('countAlDia').textContent = counts.aldia;
+            document.getElementById('countSinRegistro').textContent = counts.sinregistro;
+        }
+
+        function setFilterStatus(status) {
+            currentFilterStatus = (currentFilterStatus === status) ? 'todos' : status;
+            document.getElementById('statusFilter').value = 'todos';
+            renderMaintenanceList();
+        }
+
+        /* ==========================================================================
+           7. PESTAÑA CALENDARIO INTERACTIVO
+           ========================================================================== */
+        function renderCalendar() {
+            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            document.getElementById('calendarMonthYear').textContent = `${monthNames[calendarMonth]} ${calendarYear}`;
+
+            const daysGrid = document.getElementById('calendarDaysGrid');
+            daysGrid.innerHTML = '';
+
+            const firstDayIndex = new Date(calendarYear, calendarMonth, 1).getDay(); // 0 is Sun
+            // Convert to Mon=0 ... Sun=6
+            const startingDay = (firstDayIndex === 0) ? 6 : firstDayIndex - 1;
+            const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+
+            // Relleno mes anterior
+            for (let i = 0; i < startingDay; i++) {
+                daysGrid.innerHTML += `<div class="h-16 bg-graphite-900/30 rounded-xl border border-graphite-800/40"></div>`;
+            }
+
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const currentDayObj = new Date(calendarYear, calendarMonth, day);
+                // Adjust timezone offset for YYYY-MM-DD format
+                const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                // Buscar eventos en esta fecha
+                const dayLogs = serviceLogs.filter(l => l.fecha === dateStr);
+                const dayOdoLogs = odometerHistory.filter(o => o.fecha === dateStr);
+
+                // Mantenimientos estimadas que caen en este día
+                const dueTasks = tasks.filter(t => {
+                    const calc = getTaskCalculatedStatus(t);
+                    return calc.fechaEstimada === dateStr;
+                });
+
+                let dots = '';
+                if (dayLogs.length > 0) dots += `<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>`;
+                if (dayOdoLogs.length > 0) dots += `<span class="w-2 h-2 rounded-full bg-ttr-blue inline-block"></span>`;
+                
+                dueTasks.forEach(t => {
+                    const calc = getTaskCalculatedStatus(t);
+                    if (calc.estado === 'vencidos') dots += `<span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span>`;
+                    else dots += `<span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>`;
+                });
+
+                const isToday = (todayStr === dateStr);
+
+                daysGrid.innerHTML += `
+                    <div onclick="selectCalendarDate('${dateStr}')" class="h-16 bg-graphite-900 border ${isToday ? 'border-ttr-lime bg-ttr-lime/5' : 'border-graphite-700/60'} hover:border-ttr-lime rounded-xl p-1.5 flex flex-col justify-between cursor-pointer transition relative group">
+                        <span class="font-mono text-xs font-bold ${isToday ? 'text-ttr-lime' : 'text-gray-300'}">${day}</span>
+                        <div class="flex items-center space-x-1 flex-wrap gap-0.5">
+                            ${dots}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function changeMonth(delta) {
+            calendarMonth += delta;
+            if (calendarMonth < 0) {
+                calendarMonth = 11;
+                calendarYear--;
+            } else if (calendarMonth > 11) {
+                calendarMonth = 0;
+                calendarYear++;
+            }
+            renderCalendar();
+        }
+
+        function goToCurrentMonth() {
+            const now = new Date();
+            calendarYear = now.getFullYear();
+            calendarMonth = now.getMonth();
+            renderCalendar();
+        }
+
+        function selectCalendarDate(dateStr) {
+            const container = document.getElementById('selectedDateEvents');
+            const title = document.getElementById('selectedDateTitle');
+
+            title.textContent = `Detalles: ${dateStr}`;
+            container.innerHTML = '';
+
+            const dayLogs = serviceLogs.filter(l => l.fecha === dateStr);
+            const dayOdo = odometerHistory.filter(o => o.fecha === dateStr);
+            const dueTasks = tasks.filter(t => getTaskCalculatedStatus(t).fechaEstimada === dateStr);
+
+            if (dayLogs.length === 0 && dayOdo.length === 0 && dueTasks.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Sin eventos o mantenimientos programados para este día.</p>`;
+                return;
+            }
+
+            dayLogs.forEach(log => {
+                container.innerHTML += `
+                    <div class="bg-graphite-900 p-3 rounded-xl border border-emerald-500/40 text-xs">
+                        <div class="flex items-center justify-between font-bold text-emerald-400 mb-1">
+                            <span><i class="fa-solid fa-check-circle"></i> ${log.taskNombre}</span>
+                            <span class="font-mono">$${(log.costo || 0).toLocaleString()} COP</span>
+                        </div>
+                        <p class="text-gray-300 font-mono text-[11px]">Realizado a los ${log.km} KM</p>
+                        ${log.taller ? `<p class="text-gray-400 text-[10px] mt-0.5">Lugar: ${log.taller}</p>` : ''}
+                        ${log.notas ? `<p class="text-gray-400 text-[10px] italic mt-1">"${log.notas}"</p>` : ''}
+                    </div>
+                `;
+            });
+
+            dayOdo.forEach(odo => {
+                container.innerHTML += `
+                    <div class="bg-graphite-900 p-3 rounded-xl border border-ttr-blue/40 text-xs">
+                        <div class="flex items-center justify-between font-bold text-ttr-blue mb-1">
+                            <span><i class="fa-solid fa-gauge-high"></i> Registro de Odómetro</span>
+                            <span class="font-mono text-white font-bold">${odo.km} KM</span>
+                        </div>
+                        ${odo.nota ? `<p class="text-gray-400 text-[10px] italic">"${odo.nota}"</p>` : ''}
+                    </div>
+                `;
+            });
+
+            dueTasks.forEach(t => {
+                const calc = getTaskCalculatedStatus(t);
+                container.innerHTML += `
+                    <div class="bg-graphite-900 p-3 rounded-xl border ${calc.colorClass.split(' ')[0]} text-xs">
+                        <div class="flex items-center justify-between font-bold text-white mb-1">
+                            <span><i class="fa-solid fa-clock"></i> ${t.nombre}</span>
+                            <span class="${calc.badgeColor} text-[9px] px-1.5 py-0.5 rounded font-mono">${calc.label}</span>
+                        </div>
+                        <p class="text-gray-400 text-[11px] mb-2">Categoría: ${t.categoria}</p>
+                        <button onclick="openLogServiceModal('${t.id}')" class="w-full bg-ttr-lime text-black font-extrabold py-1 rounded-lg text-center text-xs">
+                            Registrar Realizado
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        /* ==========================================================================
+           8. PESTAÑA MANUAL, TORQUES Y CHECKLIST DE VIAJE
+           ========================================================================== */
+        const TORQUE_DATA = [
+            { rosca: "M4", g46: "1.2 - 1.5", g56: "1.5 - 2.0", g88: "2.8 - 3.2", g109: "4.0 - 4.5", g129: "4.8 - 5.2" },
+            { rosca: "M5", g46: "2.5 - 3.0", g56: "3.2 - 3.8", g88: "5.5 - 6.2", g109: "8.0 - 8.8", g129: "9.5 - 10.5" },
+            { rosca: "M6", g46: "4.5 - 5.2", g56: "5.5 - 6.5", g88: "9.5 - 10.5", g109: "14.0 - 15.5", g129: "16.5 - 18.0" },
+            { rosca: "M8", g46: "11.0 - 12.5", g56: "14.0 - 15.5", g88: "23.0 - 25.0", g109: "33.0 - 36.0", g129: "39.0 - 42.0" },
+            { rosca: "M10", g46: "22.0 - 25.0", g56: "28.0 - 31.0", g88: "46.0 - 50.0", g109: "65.0 - 72.0", g129: "78.0 - 85.0" },
+            { rosca: "M12", g46: "38.0 - 43.0", g56: "48.0 - 54.0", g88: "80.0 - 88.0", g109: "115 - 125", g129: "135 - 145" },
+            { rosca: "M14", g46: "60.0 - 68.0", g56: "75.0 - 85.0", g88: "128 - 140", g109: "185 - 200", g129: "215 - 235" },
+            { rosca: "M16", g46: "95.0 - 105", g56: "120 - 132", g88: "200 - 220", g109: "285 - 310", g129: "340 - 370" },
+            { rosca: "M18", g46: "130 - 145", g56: "165 - 180", g88: "275 - 300", g109: "390 - 425", g129: "470 - 510" },
+            { rosca: "M20", g46: "185 - 205", g56: "230 - 255", g88: "390 - 430", g109: "550 - 600", g129: "660 - 720" },
+            { rosca: "M24", g46: "320 - 355", g56: "400 - 440", g88: "670 - 740", g109: "950 - 1040", g129: "1140 - 1250" },
+            { rosca: "M30", g46: "640 - 710", g56: "800 - 880", g88: "1350 - 1480", g109: "1900 - 2100", g129: "2300 - 2500" },
+            { rosca: "M36", g46: "1100 - 1220", g56: "1400 - 1550", g88: "2350 - 2600", g109: "3300 - 3600", g129: "3900 - 4300" }
+        ];
+
+        function renderTorqueTable() {
+            const tbody = document.getElementById('torqueTableBody');
+            const query = document.getElementById('torqueSearch').value.toLowerCase();
+            tbody.innerHTML = '';
+
+            TORQUE_DATA.forEach(row => {
+                if (query && !row.rosca.toLowerCase().includes(query)) return;
+                tbody.innerHTML += `
+                    <tr class="hover:bg-graphite-700/40">
+                        <td class="p-2.5 font-bold text-ttr-lime">${row.rosca}</td>
+                        <td class="p-2.5">${row.g46}</td>
+                        <td class="p-2.5">${row.g56}</td>
+                        <td class="p-2.5 font-bold text-white bg-graphite-900/60">${row.g88}</td>
+                        <td class="p-2.5">${row.g109}</td>
+                        <td class="p-2.5 text-ttr-blue">${row.g129}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function filterTorqueTable() {
+            renderTorqueTable();
+        }
+
+        const TRIP_CHECKLIST_ITEMS = [
+            "1. Presión de aire en llantas en frío (30 PSI Del / 32 PSI Tras)",
+            "2. Nivel de aceite 4T entre marcas MAX y MIN (1200 cc)",
+            "3. Holgura vertical y lubricación de cadena (1.5 - 2.5 cm)",
+            "4. Estado y grosor de pastillas de freno delanteras y traseras",
+            "5. Funcionamiento de luces AHO, direccionales, freno y pito",
+            "6. Juego libre de manigueta de clutch (2-3 mm) y guaya acelerador",
+            "7. Ajuste de espejos retrovisores y tornillería de manubrio",
+            "8. Kit de herramientas oficial bajo el sillín completo",
+            "9. Bujía de repuesto y llave de bujía",
+            "10. Guayas de repuesto (clutch y acelerador)",
+            "11. Bombillos/Fusibles de repuesto para luces",
+            "12. Tanque de combustible lleno y verificación de llave de paso (ON)",
+            "13. Ausencia de fugas de aceite en barras delanteras o motor",
+            "14. Documentos vigentes (SOAT, Licencia de Conducción, Tarjeta)",
+            "15. Impermeable y equipo de seguridad en carretera"
+        ];
+
+        function renderTripChecklist() {
+            const container = document.getElementById('tripChecklistGrid');
+            container.innerHTML = '';
+
+            TRIP_CHECKLIST_ITEMS.forEach((item, idx) => {
+                const isChecked = !!tripChecklistState[idx];
+                container.innerHTML += `
+                    <label onclick="toggleTripCheckitem(${idx})" class="p-3 rounded-xl border ${isChecked ? 'border-ttr-lime bg-ttr-lime/10 text-white' : 'border-graphite-700 bg-graphite-900 text-gray-400'} flex items-start space-x-3 cursor-pointer transition hover:border-ttr-lime">
+                        <i class="${isChecked ? 'fa-solid fa-square-check text-ttr-lime' : 'fa-regular fa-square text-gray-500'} text-base mt-0.5"></i>
+                        <span class="font-medium leading-tight">${item}</span>
+                    </label>
+                `;
+            });
+        }
+
+        function toggleTripCheckitem(idx) {
+            tripChecklistState[idx] = !tripChecklistState[idx];
+            saveStateToLocalStorage();
+            renderTripChecklist();
+        }
+
+        function resetTripChecklist() {
+            tripChecklistState = {};
+            saveStateToLocalStorage();
+            renderTripChecklist();
+        }
+
+        /* ==========================================================================
+           9. HISTORIAL, RESPALDO Y MODALES
+           ========================================================================== */
+        function renderHistoryTab() {
+            // Totales KPI
+            const totalCost = serviceLogs.reduce((acc, curr) => acc + (parseFloat(curr.costo) || 0), 0);
+            document.getElementById('totalCostDisplay').textContent = `$${totalCost.toLocaleString()} COP`;
+            document.getElementById('totalLogsDisplay').textContent = serviceLogs.length;
+            document.getElementById('totalOdoLogsDisplay').textContent = odometerHistory.length;
+
+            // Timeline
+            const timeline = document.getElementById('historyTimelineList');
+            timeline.innerHTML = '';
+
+            // Combinar mantenimientos y lecturas de odómetro
+            const combined = [
+                ...serviceLogs.map(l => ({ ...l, type: 'service' })),
+                ...odometerHistory.map(o => ({ ...o, type: 'odometer' }))
+            ].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+            if (combined.length === 0) {
+                timeline.innerHTML = `<p class="text-xs text-gray-400 text-center py-8">Aún no hay registros guardados en la bitácora.</p>`;
+                return;
+            }
+
+            combined.forEach((item, index) => {
+                if (item.type === 'service') {
+                    timeline.innerHTML += `
+                        <div class="bg-graphite-900 border border-graphite-700 p-4 rounded-xl flex items-start justify-between gap-3 text-xs">
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-wrench"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-white text-sm">${item.taskNombre}</h4>
+                                    <span class="text-[10px] text-ttr-lime font-mono">${item.categoria}</span>
+                                    <p class="text-gray-400 font-mono text-[11px] mt-1">Fecha: ${item.fecha} • Kilometraje: ${item.km} KM</p>
+                                    ${item.taller ? `<p class="text-gray-400 text-[10px]">Taller: ${item.taller}</p>` : ''}
+                                    ${item.notas ? `<p class="text-gray-300 italic text-[11px] mt-1">"${item.notas}"</p>` : ''}
+                                </div>
+                            </div>
+                            <div class="text-right flex flex-col justify-between items-end h-full">
+                                <span class="font-mono font-bold text-emerald-400 text-sm">$${(item.costo || 0).toLocaleString()} COP</span>
+                                <button onclick="deleteServiceLog('${item.id}')" class="text-gray-500 hover:text-red-400 text-xs mt-2 transition" title="Eliminar registro">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    timeline.innerHTML += `
+                        <div class="bg-graphite-900 border border-graphite-700 p-4 rounded-xl flex items-start justify-between gap-3 text-xs">
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-ttr-blue/10 border border-ttr-blue/40 text-ttr-blue flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-gauge-high"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-white text-sm">Actualización de Odómetro</h4>
+                                    <p class="text-gray-400 font-mono text-[11px] mt-1">Fecha: ${item.fecha} • Lectura: ${item.km} KM</p>
+                                    ${item.nota ? `<p class="text-gray-300 italic text-[11px] mt-1">"${item.nota}"</p>` : ''}
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-mono font-bold text-ttr-blue text-sm">${item.km} KM</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function deleteServiceLog(logId) {
+            serviceLogs = serviceLogs.filter(l => l.id !== logId);
+            saveStateToLocalStorage();
+            renderHistoryTab();
+            renderMaintenanceList();
+        }
+
+        /* ==========================================================================
+           10. NAVEGACIÓN PESTAÑAS & MODALES
+           ========================================================================== */
+        function switchTab(tabName) {
+            currentTab = tabName;
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+            
+            // Reset tab styles
+            ['Mantenimientos', 'Calendario', 'Manual', 'Historial'].forEach(t => {
+                const btn = document.getElementById(`tabBtn${t}`);
+                if (btn) {
+                    btn.className = "py-3 px-5 text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-white flex items-center space-x-2 whitespace-nowrap transition";
+                }
+            });
+
+            const activeBtn = document.getElementById(`tabBtn${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+            if (activeBtn) {
+                activeBtn.className = "py-3 px-5 text-sm font-bold border-b-2 border-ttr-lime text-ttr-lime flex items-center space-x-2 whitespace-nowrap transition";
+            }
+
+            document.getElementById(`tabContent${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`).classList.remove('hidden');
+
+            if (tabName === 'calendario') renderCalendar();
+            if (tabName === 'historial') renderHistoryTab();
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function openLogServiceModal(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            document.getElementById('modalTaskId').value = task.id;
+            document.getElementById('modalLogTitle').textContent = `Registrar: ${task.nombre}`;
+            document.getElementById('modalLogCategory').textContent = task.categoria;
+            document.getElementById('modalLogKm').value = userBike.odometroActual;
+            document.getElementById('modalLogDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modalLogCost').value = task.costoEstimado || 0;
+            document.getElementById('modalLogShop').value = '';
+            document.getElementById('modalLogNotes').value = '';
+
+            openModal('modalLogService');
+        }
+
+        function saveServiceLog(e) {
+            e.preventDefault();
+            const taskId = document.getElementById('modalTaskId').value;
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const date = document.getElementById('modalLogDate').value;
+            const km = parseInt(document.getElementById('modalLogKm').value);
+            const cost = parseFloat(document.getElementById('modalLogCost').value) || 0;
+            const shop = document.getElementById('modalLogShop').value;
+            const notes = document.getElementById('modalLogNotes').value;
+
+            // Actualizar tarea
+            task.ultimoKm = km;
+            task.ultimaFecha = date;
+
+            // Si el km registrado es superior al actual de la moto, actualizar odómetro
+            if (km > userBike.odometroActual) {
+                userBike.odometroActual = km;
+                odometerHistory.push({ fecha: date, km: km, nota: `Actualizado por mantenimiento: ${task.nombre}` });
+            }
+
+            // Guardar en log
+            const logEntry = {
+                id: 'log_' + Date.now(),
+                taskId: task.id,
+                taskNombre: task.nombre,
+                categoria: task.categoria,
+                fecha: date,
+                km: km,
+                costo: cost,
+                taller: shop,
+                notas: notes
+            };
+
+            serviceLogs.push(logEntry);
+
+            saveStateToLocalStorage();
+            closeModal('modalLogService');
+
+            renderHeaderTelemetry();
+            renderBreakInAndWarranty();
+            renderMaintenanceList();
+        }
+
+        function openOdometerModal() {
+            document.getElementById('modalOdoInput').value = userBike.odometroActual;
+            document.getElementById('modalOdoDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modalOdoNote').value = '';
+            openModal('modalOdometer');
+        }
+
+        function saveOdometerLog(e) {
+            e.preventDefault();
+            const km = parseInt(document.getElementById('modalOdoInput').value);
+            const date = document.getElementById('modalOdoDate').value;
+            const note = document.getElementById('modalOdoNote').value;
+
+            userBike.odometroActual = km;
+            odometerHistory.push({ fecha: date, km: km, nota: note || 'Lectura manual de odómetro' });
+
+            saveStateToLocalStorage();
+            closeModal('modalOdometer');
+
+            renderHeaderTelemetry();
+            renderBreakInAndWarranty();
+            renderMaintenanceList();
+        }
+
+        function openBikeConfigModal() {
+            if (userBike.condicion === 'nueva') document.getElementById('condNueva').checked = true;
+            else document.getElementById('condUsada').checked = true;
+
+            document.getElementById('configPurchaseDate').value = userBike.fechaCompra || "2026-09-08";
+            document.getElementById('configPlate').value = userBike.placa || "";
+            document.getElementById('configInitialOdo').value = userBike.odometroInicial || 0;
+            document.getElementById('configManualAvg').value = userBike.promedioKmDiaManual || "";
+
+            openModal('modalBikeConfig');
+        }
+
+        function saveBikeConfig(e) {
+            e.preventDefault();
+            const isNueva = document.getElementById('condNueva').checked;
+            userBike.condicion = isNueva ? 'nueva' : 'usada';
+            userBike.fechaCompra = document.getElementById('configPurchaseDate').value;
+            userBike.placa = document.getElementById('configPlate').value.trim();
+            userBike.odometroInicial = parseInt(document.getElementById('configInitialOdo').value) || 0;
+            
+            const manualAvg = parseFloat(document.getElementById('configManualAvg').value);
+            userBike.promedioKmDiaManual = isNaN(manualAvg) ? null : manualAvg;
+
+            saveStateToLocalStorage();
+            closeModal('modalBikeConfig');
+
+            renderHeaderTelemetry();
+            renderBreakInAndWarranty();
+            renderMaintenanceList();
+        }
+
+        function openNewTaskModal() {
+            document.getElementById('newTaskName').value = '';
+            document.getElementById('newTaskIntervalKm').value = '';
+            document.getElementById('newTaskIntervalDays').value = '';
+            document.getElementById('newTaskCost').value = '';
+            document.getElementById('newTaskTechnicalNote').value = '';
+            openModal('modalNewTask');
+        }
+
+        function saveNewCustomTask(e) {
+            e.preventDefault();
+            const name = document.getElementById('newTaskName').value;
+            const category = document.getElementById('newTaskCategory').value;
+            const intervalKm = parseInt(document.getElementById('newTaskIntervalKm').value) || null;
+            const intervalDays = parseInt(document.getElementById('newTaskIntervalDays').value) || null;
+            const cost = parseFloat(document.getElementById('newTaskCost').value) || 0;
+            const techNote = document.getElementById('newTaskTechnicalNote').value || 'Mantenimiento personalizado creado por el usuario.';
+
+            const newTask = {
+                id: 'cust_' + Date.now(),
+                nombre: name,
+                categoria: category,
+                intervaloKm: intervalKm,
+                intervaloDias: intervalDays,
+                notaTecnica: techNote,
+                ultimoKm: null,
+                ultimaFecha: null,
+                costoEstimado: cost
+            };
+
+            tasks.push(newTask);
+            saveStateToLocalStorage();
+            closeModal('modalNewTask');
+            renderMaintenanceList();
+        }
+
+        /* ==========================================================================
+           11. EXPORTACIÓN E IMPORTACIÓN DE DATOS (JSON)
+           ========================================================================== */
+        function exportBackupJSON() {
+            const dataObj = {
+                userBike,
+                tasks,
+                odometerHistory,
+                serviceLogs,
+                tripChecklistState,
+                exportDate: new Date().toISOString()
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataObj, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `MotoTrack_AKT_TTR200_Respaldo_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importBackupJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.userBike && imported.tasks) {
+                        userBike = imported.userBike;
+                        tasks = imported.tasks;
+                        odometerHistory = imported.odometerHistory || [];
+                        serviceLogs = imported.serviceLogs || [];
+                        tripChecklistState = imported.tripChecklistState || {};
+
+                        saveStateToLocalStorage();
+                        alert("¡Respaldo importado con éxito!");
+                        window.location.reload();
+                    } else {
+                        alert("El archivo no contiene un formato de respaldo válido para MotoTrack.");
+                    }
+                } catch (err) {
+                    alert("Error al procesar el archivo JSON: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetToFactoryData() {
+            if (confirm("¿Estás seguro de restablecer todos los datos a los de fábrica? Se borrará el historial guardado en este navegador.")) {
+                localStorage.clear();
+                window.location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
